@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Documents — SecureDocs{% endblock %}
+{% block content %}
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem;">
+  <h1 style="margin-bottom:0;">My Documents</h1>
+  {% if user.role != 'guest' %}
+  <a href="{{ url_for('upload') }}" class="btn btn-primary">+ Upload</a>
+  {% endif %}
+</div>
+
+{% set owned  = documents | selectattr('access_role','equalto','owner') | list %}
+{% set shared = documents | rejectattr('access_role','equalto','owner') | list %}
+
+{% if not documents %}
+  <div class="card" style="text-align:center; padding:3rem;">
+    <p class="muted">No documents yet.</p>
+    {% if user.role != 'guest' %}
+    <a href="{{ url_for('upload') }}" class="btn btn-primary" style="margin-top:1rem;">Upload your first document</a>
+    {% endif %}
+  </div>
+{% else %}
+
+  {% if owned %}
+  <h2>Your Documents</h2>
+  <div class="card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Size</th>
+          <th>Version</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in owned %}
+        <tr>
+          <td><a href="{{ url_for('view_document', doc_id=doc.id) }}">{{ doc.original_filename }}</a></td>
+          <td class="muted">{{ (doc.size / 1024) | round(1) }} KB</td>
+          <td class="muted">v{{ doc.version }}</td>
+          <td>
+            <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">View</a>
+            <a href="{{ url_for('download', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">Download</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if shared %}
+  <h2>Shared with Me</h2>
+  <div class="card" style="padding:0;">
+    <table>
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>Owner</th>
+          <th>My Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in shared %}
+        <tr>
+          <td><a href="{{ url_for('view_document', doc_id=doc.id) }}">{{ doc.original_filename }}</a></td>
+          <td class="muted">{{ doc.owner_username }}</td>
+          <td><span class="badge badge-{{ doc.access_role }}">{{ doc.access_role }}</span></td>
+          <td>
+            <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">View</a>
+            <a href="{{ url_for('download', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">Download</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+{% endif %}
+{% endblock %}

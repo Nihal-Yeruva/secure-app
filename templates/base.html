@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SecureDocs{% endblock %}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 15px; background: #f4f4f4; color: #222; }
+
+    nav {
+      background: #2c3e50;
+      padding: 0 1.5rem;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav a, nav button {
+      color: #ecf0f1;
+      text-decoration: none;
+      font-size: 14px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem 0.6rem;
+      font-family: Arial, sans-serif;
+    }
+    nav a:hover, nav button:hover { text-decoration: underline; }
+    .nav-brand { font-weight: bold; font-size: 16px; }
+    .nav-links { display: flex; gap: 0.25rem; align-items: center; }
+    .role-tag { font-size: 11px; background: #34495e; padding: 2px 7px; border-radius: 3px; color: #bdc3c7; }
+
+    .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 1.25rem; }
+    h2 { font-size: 1.15rem; margin-bottom: 1rem; color: #333; }
+
+    .card { background: #fff; border: 1px solid #ddd; border-radius: 5px; padding: 1.5rem; margin-bottom: 1.25rem; }
+
+    .alert { padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1rem; font-size: 14px; }
+    .alert-error   { background: #fdecea; border: 1px solid #e74c3c; color: #c0392b; }
+    .alert-success { background: #eafaf1; border: 1px solid #27ae60; color: #1e8449; }
+
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 0.3rem; color: #444; }
+    input[type=text], input[type=email], input[type=password],
+    input[type=file], select, textarea {
+      width: 100%;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #2980b9; }
+
+    .btn {
+      display: inline-block;
+      padding: 0.45rem 1.1rem;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary   { background: #2980b9; color: #fff; }
+    .btn-secondary { background: #7f8c8d; color: #fff; }
+    .btn-danger    { background: #e74c3c; color: #fff; }
+    .btn-sm { padding: 0.3rem 0.75rem; font-size: 13px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 0.5rem 0.75rem; background: #f0f0f0; border-bottom: 2px solid #ddd; font-size: 13px; }
+    td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; }
+    tr:last-child td { border-bottom: none; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 3px; font-weight: bold; }
+    .badge-owner  { background: #d5f5e3; color: #1e8449; }
+    .badge-editor { background: #d6eaf8; color: #1a5276; }
+    .badge-viewer { background: #f0f0f0; color: #555; }
+    .badge-admin  { background: #fadbd8; color: #922b21; }
+    .badge-user   { background: #eaf2ff; color: #1a5276; }
+    .badge-guest  { background: #f0f0f0; color: #555; }
+
+    .hint  { font-size: 12px; color: #777; margin-top: 0.3rem; }
+    .muted { color: #777; font-size: 13px; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 1.25rem 0; }
+    .flashes { list-style: none; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  {% if g.user %}
+  <nav>
+    <a href="{{ url_for('dashboard') }}" class="nav-brand">SecureDocs</a>
+    <div class="nav-links">
+      <a href="{{ url_for('dashboard') }}">Documents</a>
+      {% if g.user.role != 'guest' %}<a href="{{ url_for('upload') }}">Upload</a>{% endif %}
+      {% if g.user.role == 'admin' %}<a href="{{ url_for('admin_dashboard') }}">Admin</a>{% endif %}
+      <a href="{{ url_for('account') }}">{{ g.user.username }}</a>
+      <span class="role-tag">{{ g.user.role }}</span>
+      <form action="{{ url_for('logout') }}" method="get" style="display:inline">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  </nav>
+  {% endif %}
+
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes" style="margin-top:0.5rem;margin-bottom:1rem;">
+          {% for category, message in messages %}
+            <li class="alert alert-{{ 'success' if category == 'success' else 'error' }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

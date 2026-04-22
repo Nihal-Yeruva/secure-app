@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}SecureDocs{% endblock %}
+{% block content %}
+<div style="max-width:500px; margin:4rem auto; text-align:center;">
+  <h1 style="font-size:2rem; margin-bottom:0.75rem;">SecureDocs</h1>
+  <p class="muted" style="margin-bottom:2rem;">Encrypted document sharing with role-based access control.</p>
+  <div style="display:flex; gap:1rem; justify-content:center;">
+    <a href="{{ url_for('login') }}" class="btn btn-primary">Sign In</a>
+    <a href="{{ url_for('register') }}" class="btn btn-secondary">Create Account</a>
+  </div>
+</div>
+{% endblock %}

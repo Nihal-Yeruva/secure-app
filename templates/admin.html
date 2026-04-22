@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Admin — SecureDocs{% endblock %}
+{% block content %}
+<h1>Admin</h1>
+
+<div style="display:flex; gap:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+  <div class="card" style="flex:1; min-width:140px; text-align:center; padding:1rem;">
+    <div style="font-size:1.75rem; font-weight:bold;">{{ users | length }}</div>
+    <div class="muted">Users</div>
+  </div>
+  <div class="card" style="flex:1; min-width:140px; text-align:center; padding:1rem;">
+    <div style="font-size:1.75rem; font-weight:bold;">{{ documents | length }}</div>
+    <div class="muted">Documents</div>
+  </div>
+</div>
+
+<h2>Users</h2>
+<div class="card" style="padding:0; margin-bottom:1.5rem;">
+  <table>
+    <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>{{ u.username }}{% if u.id == user.id %} <span class="muted">(you)</span>{% endif %}</td>
+        <td class="muted">{{ u.email }}</td>
+        <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+        <td>
+          {% if u.id != user.id %}
+          <form method="POST" action="{{ url_for('promote_user', user_id=u.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-secondary btn-sm">
+              {% if u.role == 'guest' %}→ User{% elif u.role == 'user' %}→ Admin{% else %}→ User{% endif %}
+            </button>
+          </form>
+          <form method="POST" action="{{ url_for('admin_delete_user', user_id=u.id) }}"
+                onsubmit="return confirm('Delete {{ u.username }}?');" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>All Documents</h2>
+<div class="card" style="padding:0;">
+  {% if documents %}
+  <table>
+    <thead><tr><th>Filename</th><th>Owner</th><th>Size</th><th>Version</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for doc in documents %}
+      <tr>
+        <td>{{ doc.original_filename }}</td>
+        <td class="muted">{{ doc.owner_username }}</td>
+        <td class="muted">{{ (doc.size/1024)|round(1) }} KB</td>
+        <td class="muted">v{{ doc.version }}</td>
+        <td>
+          <a href="{{ url_for('view_document', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">View</a>
+          <a href="{{ url_for('download', doc_id=doc.id) }}" class="btn btn-secondary btn-sm">Download</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted" style="padding:1rem;">No documents yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

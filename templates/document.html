@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.original_filename }} — SecureDocs{% endblock %}
+{% block content %}
+<p style="margin-bottom:1rem;"><a href="{{ url_for('dashboard') }}">← Back</a></p>
+
+<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.75rem;">
+  <div>
+    <h1 style="margin-bottom:0.25rem;">{{ doc.original_filename }}</h1>
+    <span class="muted">Owner: {{ doc.owner_username }} &nbsp;·&nbsp; v{{ doc.version }} &nbsp;·&nbsp; {{ (doc.size/1024)|round(1) }} KB</span>
+    &nbsp;<span class="badge badge-{{ user_role }}">{{ user_role }}</span>
+  </div>
+  <a href="{{ url_for('download', doc_id=doc.id) }}" class="btn btn-primary">Download</a>
+</div>
+
+{% if doc.description %}
+<div class="card" style="margin-bottom:1rem;">
+  <p>{{ doc.description }}</p>
+</div>
+{% endif %}
+
+<!-- Share (owner/admin only) -->
+{% if user_role in ('owner', 'admin') %}
+<div class="card">
+  <h2>Share</h2>
+  <form method="POST" action="{{ url_for('share_doc', doc_id=doc.id) }}" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+    <div class="form-group" style="margin:0; flex:1; min-width:150px;">
+      <label>Username</label>
+      <input type="text" name="username" required maxlength="20" placeholder="their_username">
+    </div>
+    <div class="form-group" style="margin:0;">
+      <label>Role</label>
+      <select name="role">
+        <option value="viewer">Viewer</option>
+        <option value="editor">Editor</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary btn-sm" style="margin-bottom:0;">Share</button>
+  </form>
+
+  {% if shares %}
+  <hr>
+  <table>
+    <thead><tr><th>User</th><th>Role</th><th></th></tr></thead>
+    <tbody>
+      {% for s in shares %}
+      <tr>
+        <td>{{ s.username }}</td>
+        <td><span class="badge badge-{{ s.role }}">{{ s.role }}</span></td>
+        <td>
+          <form method="POST" action="{{ url_for('unshare_doc', doc_id=doc.id) }}" style="display:inline;">
+            <input type="hidden" name="user_id" value="{{ s.user_id }}">
+            <button type="submit" class="btn btn-danger btn-sm">Revoke</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Upload new version (owner/editor/admin) -->
+{% if user_role in ('owner', 'editor', 'admin') %}
+<div class="card">
+  <h2>Upload New Version</h2>
+  <form method="POST" action="{{ url_for('update_doc', doc_id=doc.id) }}" enctype="multipart/form-data"
+        style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap;">
+    <div class="form-group" style="margin:0; flex:1;">
+      <label>File</label>
+      <input type="file" name="file" required>
+    </div>
+    <button type="submit" class="btn btn-secondary btn-sm" style="margin-bottom:0;">Upload v{{ doc.version + 1 }}</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- Version history -->
+{% if versions %}
+<div class="card">
+  <h2>Version History</h2>
+  <table>
+    <thead><tr><th>Version</th><th>Uploaded By</th></tr></thead>
+    <tbody>
+      {% for v in versions | sort(attribute='version', reverse=True) %}
+      <tr>
+        <td>v{{ v.version }} {% if loop.first %}<span class="badge" style="background:#eaf2ff;color:#1a5276;">current</span>{% endif %}</td>
+        <td class="muted">{{ v.uploaded_by }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Delete (owner/admin only) -->
+{% if user_role in ('owner', 'admin') %}
+<div class="card" style="border-color:#e74c3c;">
+  <h2 style="color:#c0392b;">Delete Document</h2>
+  <p class="muted" style="margin-bottom:1rem;">This permanently deletes all versions. Cannot be undone.</p>
+  <form method="POST" action="{{ url_for('delete_doc', doc_id=doc.id) }}"
+        onsubmit="return confirm('Delete {{ doc.original_filename }} and all versions?');">
+    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
